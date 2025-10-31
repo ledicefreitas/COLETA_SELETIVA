@@ -435,11 +435,12 @@ st.markdown(
     }}
     </style>
     <div class="footer">
-        Desenvolvido por <b>Ana</b> © {ano_atual} — Sistema de Coleta Seletiva ♻️
+        Desenvolvido por <b>Leticia Freitas</b> © {ano_atual} — Sistema de Coleta Seletiva ♻️
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
 
