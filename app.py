@@ -68,34 +68,70 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
     st.write(f"📄 Página {page}/{total_pages}")
 
     return df.iloc[start:end]
-# ======================================
-# Plano de Fundo Personalizado
-# ======================================
+
+
 page_bg = """
 <style>
+/* Plano de fundo */
 [data-testid="stAppViewContainer"] {
-    background-image: url("https://raw.githubusercontent.com/ledicefreitas/COLETA_SELETIVA/main/PanodeFundo.png");
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), 
+        url("https://raw.githubusercontent.com/ledicefreitas/COLETA_SELETIVA/main/PanodeFundo.png");
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
+/* Cabeçalho */
 [data-testid="stHeader"] {
-    background: rgba(0,0,0,0); /* deixa o topo transparente */
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
 }
 
+/* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: rgba(255, 255, 255, 0.8); /* barra lateral semi-transparente */
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-right: 2px solid rgba(46, 139, 87, 0.3);
 }
 
+/* Container principal */
 .block-container {
-    background-color: rgba(255, 255, 255, 0.85); /* fundo principal com leve transparência */
-    border-radius: 12px;
-    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Títulos */
+h1, h2, h3, h4, h5 {
+    color: #2E8B57;
+    font-weight: 700;
+}
+
+/* Botões */
+button[kind="primary"] {
+    background-color: #2E8B57 !important;
+    color: white !important;
+    border-radius: 10px !important;
+}
+
+/* Inputs e caixas */
+.stTextInput, .stSelectbox, .stDateInput, .stNumberInput {
+    background-color: rgba(255,255,255,0.85) !important;
+    border-radius: 10px !important;
+}
+
+/* Tabelas */
+.stDataFrame, .stDataEditor {
+    background-color: rgba(255,255,255,0.9) !important;
+    border-radius: 10px;
 }
 </style>
 """
 st.markdown(page_bg, unsafe_allow_html=True)
+
 
 # Dicionário de usuários autorizados
 USERS = {
@@ -432,4 +468,5 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
 
