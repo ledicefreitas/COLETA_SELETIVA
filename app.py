@@ -70,43 +70,53 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
     return df.iloc[start:end]
 
 
-page_bg = """
+st.markdown("""
 <style>
-/* Plano de fundo */
+/* ======== FUNDO GERAL ======== */
 [data-testid="stAppViewContainer"] {
     background: 
-        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), 
+        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
         url("https://raw.githubusercontent.com/ledicefreitas/COLETA_SELETIVA/main/PanodeFundo.png");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
 }
 
-/* Cabeçalho */
+/* Remove o cabeçalho branco */
 [data-testid="stHeader"] {
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
+    background: transparent;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
     background-color: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    border-right: 2px solid rgba(46, 139, 87, 0.3);
+    backdrop-filter: blur(10px);
+    border-right: 2px solid rgba(46, 139, 87, 0.2);
 }
 
-/* Container principal */
+/* Centraliza verticalmente o login */
 .block-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-top: -6rem;
+}
+
+/* CARD DE LOGIN */
+.login-card {
     background-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    text-align: center;
 }
 
-/* Títulos */
-h1, h2, h3, h4, h5 {
-    color: #2E8B57;
+/* Textos */
+h1, h2, h3 {
+    color: #2E8B57 !important;
     font-weight: 700;
 }
 
@@ -114,23 +124,17 @@ h1, h2, h3, h4, h5 {
 button[kind="primary"] {
     background-color: #2E8B57 !important;
     color: white !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
 }
 
-/* Inputs e caixas */
-.stTextInput, .stSelectbox, .stDateInput, .stNumberInput {
-    background-color: rgba(255,255,255,0.85) !important;
-    border-radius: 10px !important;
-}
-
-/* Tabelas */
-.stDataFrame, .stDataEditor {
+/* Inputs */
+.stTextInput, .stPasswordInput {
     background-color: rgba(255,255,255,0.9) !important;
-    border-radius: 10px;
+    border-radius: 10px !important;
 }
 </style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 # Dicionário de usuários autorizados
@@ -145,6 +149,7 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def login():
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
     st.title("🔒 Login - Sistema de Coleta Seletiva")
 
     username = st.text_input("Usuário")
@@ -158,7 +163,7 @@ def login():
             st.rerun()
         else:
             st.error("❌ Usuário ou senha incorretos.")
-
+    st.markdown('</div>', unsafe_allow_html=True)
 def logout():
     st.session_state.logged_in = False
     st.session_state.username = None
@@ -468,5 +473,6 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
 
 
