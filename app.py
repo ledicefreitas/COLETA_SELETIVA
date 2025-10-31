@@ -68,14 +68,34 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
     st.write(f"📄 Página {page}/{total_pages}")
 
     return df.iloc[start:end]
+
+# Define a cor de fundo da página
+st.markdown(
+    """
+    <style>
+        /* Fundo da página */
+        .stApp {
+            background-color: #E6F3FF; /* azul clarinho, pode trocar */
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+#=======================================    
 # Dicionário de usuários autorizados
+#=======================================   
+
 USERS = {
     "admin": "1234",
     "leticia": "senha123",
     "coleta": "verde2025"
 }
 
+#=======================================   
 # Estado de login
+#=======================================   
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -403,3 +423,4 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
