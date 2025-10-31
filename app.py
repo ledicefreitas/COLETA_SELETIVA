@@ -411,6 +411,37 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+# ======================================
+# Rodapé fixo
+# ======================================
+import datetime
+ano_atual = datetime.date.today().year
+
+st.markdown(
+    f"""
+    <style>
+    .footer {{
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #f5f5f5;
+        color: gray;
+        text-align: center;
+        padding: 8px;
+        font-size: 14px;
+        border-top: 1px solid #dcdcdc;
+        z-index: 100;
+    }}
+    </style>
+    <div class="footer">
+        Desenvolvido por <b>Ana</b> © {ano_atual} — Sistema de Coleta Seletiva ♻️
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
 
 
 
