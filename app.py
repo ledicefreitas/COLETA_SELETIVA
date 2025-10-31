@@ -68,6 +68,35 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
     st.write(f"📄 Página {page}/{total_pages}")
 
     return df.iloc[start:end]
+# ======================================
+# Plano de Fundo Personalizado
+# ======================================
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-image: url("https://raw.githubusercontent.com/ledicefreitas/COLETA_SELETIVA/main/PanodeFundo.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+[data-testid="stHeader"] {
+    background: rgba(0,0,0,0); /* deixa o topo transparente */
+}
+
+[data-testid="stSidebar"] {
+    background-color: rgba(255, 255, 255, 0.8); /* barra lateral semi-transparente */
+}
+
+.block-container {
+    background-color: rgba(255, 255, 255, 0.85); /* fundo principal com leve transparência */
+    border-radius: 12px;
+    padding: 20px;
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
 # Dicionário de usuários autorizados
 USERS = {
     "admin": "1234",
@@ -403,3 +432,4 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
