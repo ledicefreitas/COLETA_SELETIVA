@@ -75,7 +75,7 @@ st.markdown(
     <style>
         /* Fundo da página */
         .stApp {
-            background-color: #aaffb9; /* azul clarinho, pode trocar */
+            background-color: #c2ffcc; /* azul clarinho, pode trocar */
         }
     </style>
     """,
@@ -423,5 +423,6 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
 
 
