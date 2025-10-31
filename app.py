@@ -69,18 +69,6 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
 
     return df.iloc[start:end]
 
-# Define a cor de fundo da página
-st.markdown(
-    """
-    <style>
-        /* Fundo da página */
-        .stApp {
-            background-color: #c2ffcc; /* azul clarinho, pode trocar */
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 #=======================================    
 # Dicionário de usuários autorizados
@@ -423,6 +411,7 @@ elif menu == "Ranking":
                 st.dataframe(df_ranking, use_container_width=True)
     else:
         st.info("👆 Selecione a data inicial e final para exibir o ranking.")
+
 
 
 
