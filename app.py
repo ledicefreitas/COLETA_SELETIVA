@@ -255,8 +255,7 @@ if not st.session_state.logged_in:
 # ======================================
 # Menu lateral
 # ======================================
-st.session_state.nome_completo = usuarios["nome_completo"]
-st.sidebar.success(f"👋 Olá, {st.session_state.nome_completo}")
+st.sidebar.success(f"👋 Olá, {st.session_state.username}")
 if st.sidebar.button("Sair"):
     logout()
 
@@ -657,6 +656,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
