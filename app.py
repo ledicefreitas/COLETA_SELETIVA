@@ -162,7 +162,8 @@ def gerar_pdf_comprovante(dados):
     c.drawString(0.2*cm, y, f"Material: {dados['material']}")
     y -= 0.5*cm
     c.drawString(0.2*cm, y, f"Peso: {dados['peso']} kg")
-    y -= 0.5*cm
+    y -= 0.6*cm
+    c.setFont("Helvetica-Bold", 9)
     c.drawString(0.2*cm, y, f"Guarde este comprovante, seu protocolo é o seu")
     y -= 0.5*cm
     c.drawString(0.2*cm, y, f"número da Sorte para nossos sorteios!")
@@ -637,6 +638,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
