@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import re
 import random
+import bcrypt
 import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
@@ -229,15 +230,24 @@ def login():
     st.title("🔒 Login - Sistema de Coleta Seletiva")
     username = st.text_input("Usuário")
     password = st.text_input("Senha", type="password")
-    if st.button("Entrar"):
-        if username in USERS and USERS[username] == password:
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.success("✅ Login bem-sucedido!")
-            st.rerun()
-        else:
-            st.error("❌ Usuário ou senha incorretos.")
 
+    if st.button("Entrar"):
+        response = supabase.table("usuarios").select("*").eq("username", username).execute()
+
+        if response.data:
+            user = response.data[0]
+            senha_hash = user["senha"]
+
+            if bcrypt.checkpw(password.encode("utf-8"), senha_hash.encode("utf-8")):
+                st.session_state.logged_in = True
+                st.session_state.username = user.get("nome_completo") or username
+                st.success("✅ Login bem-sucedido!")
+                st.rerun()
+            else:
+                st.error("❌ Usuário ou senha incorretos.")
+        else:
+            st.error("❌ Usuário não encontrado.")
+            
 def logout():
     st.session_state.logged_in = False
     st.session_state.username = None
@@ -651,4 +661,5 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
