@@ -128,40 +128,52 @@ def gerar_numero_protocolo():
 
 
 def gerar_pdf_comprovante(dados):
-    """Gera um PDF de comprovante de pesagem e retorna um buffer de bytes."""
+    """Gera um PDF de comprovante compacto para impressora térmica 80mm."""
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-
+    
+    largura = 8*cm     # largura típica de impressora térmica
+    altura = 20*cm     # altura inicial, pode aumentar conforme linhas
+    
+    c = canvas.Canvas(buffer, pagesize=(largura, altura))
+    
     # Cabeçalho
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(2 * cm, 27 * cm, "♻️ SISTEMA DE COLETA SELETIVA")
-    c.setFont("Helvetica", 12)
-    c.drawString(2 * cm, 26.2 * cm, "Comprovante de Pesagem")
-
+    y = altura - 1*cm
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(0.2*cm, y, "♻️ SISTEMA DE COLETA SELETIVA")
+    y -= 0.6*cm
+    c.setFont("Helvetica", 9)
+    c.drawString(0.2*cm, y, "Comprovante de Pesagem")
+    
     # Linha divisória
+    y -= 0.4*cm
     c.setStrokeColor(colors.green)
-    c.setLineWidth(2)
-    c.line(2 * cm, 26 * cm, 18 * cm, 26 * cm)
-
+    c.setLineWidth(1)
+    c.line(0.2*cm, y, largura-0.2*cm, y)
+    
     # Corpo do comprovante
-    y = 24.5 * cm
-    c.setFont("Helvetica", 11)
-    c.drawString(2 * cm, y, f"Protocolo: {dados['protocolo']}")
-    y -= 1 * cm
-    c.drawString(2 * cm, y, f"Data: {dados['data']}")
-    y -= 1 * cm
-    c.drawString(2 * cm, y, f"Coletor: {dados['coletor']}")
-    y -= 1 * cm
-    c.drawString(2 * cm, y, f"Material: {dados['material']}")
-    y -= 1 * cm
-    c.drawString(2 * cm, y, f"Peso: {dados['peso']} kg")
-
+    y -= 0.6*cm
+    c.setFont("Helvetica", 9)
+    c.drawString(0.2*cm, y, f"Protocolo: {dados['protocolo']}")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"Data: {dados['data']}")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"Coletor: {dados['coletor']}")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"Material: {dados['material']}")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"Peso: {dados['peso']} kg")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"Guarde este comprovante, seu protocolo é o seu")
+    y -= 0.5*cm
+    c.drawString(0.2*cm, y, f"número da Sorte para nossos sorteios!")
     # Rodapé
-    c.setFont("Helvetica-Oblique", 9)
+    y -= 1*cm
+    c.setFont("Helvetica-Oblique", 7)
     c.setFillColor(colors.gray)
-    c.drawString(2 * cm, 2.5 * cm, "Emitido automaticamente pelo Sistema de Coleta Seletiva")
-    c.drawString(2 * cm, 2 * cm, f"Desenvolvido por Leticia Freitas © {datetime.date.today().year}")
-
+    c.drawString(0.2*cm, y, "Emitido automaticamente pelo Sistema de Coleta Seletiva")
+    y -= 0.4*cm
+    c.drawString(0.2*cm, y, f"Desenvolvido por Leticia Freitas © {datetime.date.today().year}")
+    
     c.showPage()
     c.save()
     buffer.seek(0)
@@ -625,6 +637,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
