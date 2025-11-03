@@ -262,7 +262,10 @@ menu = st.sidebar.radio("Navegação", ["Coletores", "Materiais", "Pesagens", "R
 # Coletores
 # ======================================
 if menu == "Coletores":
-    st.markdown("### 🧍 Cadastro de Coletores")
+    st.markdown(
+        "<p style='font-weight:bold; color:#2E8B57; font-size:20px;'>Cadastro de Coletores</p>",
+        unsafe_allow_html=True
+    )
     df_coletores = get_data("coletores")
 
     with st.form("add_coletor"):
@@ -302,7 +305,10 @@ if menu == "Coletores":
 # Materiais
 # ======================================
 elif menu == "Materiais":
-    st.markdown("### 🧱 Cadastro de Materiais")
+    st.markdown(
+        "<p style='font-weight:bold; color:#2E8B57; font-size:20px;'>Cadastro de Materiais</p>",
+        unsafe_allow_html=True
+    )
     df_materiais = get_data("materiais")
 
     with st.form("add_material"):
@@ -335,7 +341,10 @@ elif menu == "Materiais":
 # 3️⃣ Pesagens (registro, listagem, filtros e comprovante)
 # ======================================
 elif menu == "Pesagens":
-    st.markdown("### ⚖️ Registro de Pesagens")
+    st.markdown(
+        "<p style='font-weight:bold; color:#2E8B57; font-size:20px;'>Registro de Pesagens</p>",
+        unsafe_allow_html=True
+    )
 
     df_coletores = get_data("coletores")
     df_materiais = get_data("materiais")
@@ -540,7 +549,10 @@ elif menu == "Pesagens":
 # Ranking
 # ======================================
 elif menu == "Ranking":
-    st.markdown("### 🏆 Ranking de Coletores")
+    st.markdown(
+        "<p style='font-weight:bold; color:#2E8B57; font-size:20px;'>Ranking de Coletores</p>",
+        unsafe_allow_html=True
+    )
     col1, col2 = st.columns(2)
     with col1:
         data_inicial = st.date_input("Data inicial")
@@ -578,7 +590,10 @@ elif menu == "Ranking":
 # ======================================
 
 elif menu == "Sorteio":
-    st.markdown("### 🎲 Sorteio de Protocolos")
+    st.markdown(
+        "<p style='font-weight:bold; color:#2E8B57; font-size:20px;'>Sorteio de Protocolos</p>",
+        unsafe_allow_html=True
+    )
 
     qtd = st.number_input("Quantos protocolos sortear?", min_value=1, step=1)
     if st.button("🎯 Realizar sorteio"):
@@ -636,3 +651,4 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
