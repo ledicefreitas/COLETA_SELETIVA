@@ -13,6 +13,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+
 # ======================================
 # Funções auxiliares
 # ======================================
@@ -112,3 +113,4 @@ elif menu == "Editar usuário existente":
             st.success("✅ Usuário atualizado com sucesso!")
         except Exception as e:
             st.error(f"Erro ao atualizar: {e}")
+
