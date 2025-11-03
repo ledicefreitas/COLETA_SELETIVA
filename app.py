@@ -217,11 +217,6 @@ def sortear_protocolo(qtd=1):
 # ======================================
 # Login
 # ======================================
-USERS = {
-    "admin": "1234",
-    "leticia": "senha123",
-    #"coleta": "verde2025"
-}
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -260,7 +255,7 @@ if not st.session_state.logged_in:
 # ======================================
 # Menu lateral
 # ======================================
-st.sidebar.success(f"👋 Olá, {st.session_state.username}")
+st.sidebar.success(f"👋 Olá, {st.session_state.nome_completo}")
 if st.sidebar.button("Sair"):
     logout()
 
@@ -661,5 +656,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
