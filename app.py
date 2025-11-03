@@ -343,7 +343,7 @@ elif menu == "Materiais":
         st.dataframe(df_paginado, use_container_width=True)
 
 # ======================================
-# 3️⃣ Pesagens (registro, listagem, filtros e comprovante)
+# Pesagens (registro, listagem, filtros e comprovante) com paginação
 # ======================================
 elif menu == "Pesagens":
     st.markdown(
@@ -448,14 +448,20 @@ elif menu == "Pesagens":
             if filtro_data:
                 df = df[df["Data"] == str(filtro_data)]
 
-            # Exibe tabela com edição apenas do peso
-            df_edit = st.data_editor(df, num_rows="fixed", use_container_width=True)
+            # Ordena do mais recente para o mais antigo
+            df = df.sort_values(by="Data", ascending=False).reset_index(drop=True)
+
+            # Paginação
+            df_paginado = paginate_dataframe(df, page_size=10, key_prefix="pesagens")
+
+            # Exibe tabela paginada com edição apenas do peso
+            df_edit = st.data_editor(df_paginado, num_rows="fixed", use_container_width=True)
 
             # Detecta alterações e salva
-            if not df.equals(df_edit):
+            if not df_paginado.equals(df_edit):
                 if st.button("💾 Salvar alterações de peso"):
                     for i in range(len(df_edit)):
-                        old_row = df.iloc[i]
+                        old_row = df_paginado.iloc[i]
                         new_row = df_edit.iloc[i]
                         if old_row["Peso (kg)"] != new_row["Peso (kg)"]:
                             supabase.table("pesagens").update({
@@ -488,67 +494,70 @@ elif menu == "Pesagens":
     except Exception as e:
         st.error(f"❌ Erro ao carregar pesagens: {e}")
 
-    # ======================================
-    # Exibir comprovante (novo ou reimpresso)
-    # ======================================
-    if "ultimo_comprovante" in st.session_state:
-        comp = st.session_state["ultimo_comprovante"]
-        st.markdown("---")
-        st.markdown("### 🧾 Comprovante de Pesagem")
-        st.write(f"**Protocolo:** {comp['protocolo']}")
-        st.write(f"**Coletor:** {comp['coletor']}")
-        st.write(f"**Material:** {comp['material']}")
-        st.write(f"**Peso:** {comp['peso']} kg")
-        st.write(f"**Data:** {comp['data']}")
+# ======================================
+# Exibir comprovante (novo ou reimpresso)
+# ======================================
+if "ultimo_comprovante" in st.session_state:
+    comp = st.session_state["ultimo_comprovante"]
+    st.markdown("---")
+    st.markdown("### 🧾 Comprovante de Pesagem")
+    st.write(f"**Protocolo:** {comp['protocolo']}")
+    st.write(f"**Coletor:** {comp['coletor']}")
+    st.write(f"**Material:** {comp['material']}")
+    st.write(f"**Peso:** {comp['peso']} kg")
+    st.write(f"**Data:** {comp['data']}")
 
-        pdf_buffer = gerar_pdf_comprovante(comp)
-        st.download_button(
-            label="📥 Baixar Comprovante (PDF)",
-            data=pdf_buffer,
-            file_name=f"comprovante_{comp['protocolo']}.pdf",
-            mime="application/pdf"
-        )
+    # Gerar PDF
+    pdf_buffer = gerar_pdf_comprovante(comp)
+    
+    # Chave única usando protocolo
+    st.download_button(
+        label="📥 Baixar Comprovante (PDF)",
+        data=pdf_buffer,
+        file_name=f"comprovante_{comp['protocolo']}.pdf",
+        mime="application/pdf",
+        key=f"download_{comp['protocolo']}"
+    )
 
-        # Script para abrir e imprimir o PDF
-        st.markdown(
-            """
-            <script>
-            function openAndPrintPDF(base64Data) {
-                const pdfData = 'data:application/pdf;base64,' + base64Data;
-                const newWindow = window.open(pdfData);
-                if (newWindow) {
-                    newWindow.onload = function() {
-                        newWindow.focus();
-                        newWindow.print();
-                    };
-                } else {
-                    alert('Desbloqueie pop-ups para imprimir o comprovante.');
-                }
+    # Script para abrir e imprimir o PDF
+    st.markdown(
+        """
+        <script>
+        function openAndPrintPDF(base64Data) {
+            const pdfData = 'data:application/pdf;base64,' + base64Data;
+            const newWindow = window.open(pdfData);
+            if (newWindow) {
+                newWindow.onload = function() {
+                    newWindow.focus();
+                    newWindow.print();
+                };
+            } else {
+                alert('Desbloqueie pop-ups para imprimir o comprovante.');
             }
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+        }
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
 
-        import base64
-        pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
-        st.markdown(
-            f"""
-            <button onclick="openAndPrintPDF('{pdf_base64}')" style="
-                background-color:#2E8B57;
-                color:white;
-                padding:8px 16px;
-                border:none;
-                border-radius:6px;
-                cursor:pointer;
-                font-weight:bold;
-            ">
-            🖨️ Imprimir Comprovante
-            </button>
-            """,
-            unsafe_allow_html=True
-        )
-
+    import base64
+    pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
+    st.markdown(
+        f"""
+        <button onclick="openAndPrintPDF('{pdf_base64}')" style="
+            background-color:#2E8B57;
+            color:white;
+            padding:8px 16px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            font-weight:bold;
+        ">
+        🖨️ Imprimir Comprovante
+        </button>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ======================================
 # Ranking
@@ -656,6 +665,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
