@@ -519,46 +519,6 @@ if "ultimo_comprovante" in st.session_state:
         key=f"download_{comp['protocolo']}"
     )
 
-    # Script para abrir e imprimir o PDF
-    st.markdown(
-        """
-        <script>
-        function openAndPrintPDF(base64Data) {
-            const pdfData = 'data:application/pdf;base64,' + base64Data;
-            const newWindow = window.open(pdfData);
-            if (newWindow) {
-                newWindow.onload = function() {
-                    newWindow.focus();
-                    newWindow.print();
-                };
-            } else {
-                alert('Desbloqueie pop-ups para imprimir o comprovante.');
-            }
-        }
-        </script>
-        """,
-        unsafe_allow_html=True
-    )
-
-    import base64
-    pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
-    st.markdown(
-        f"""
-        <button onclick="openAndPrintPDF('{pdf_base64}')" style="
-            background-color:#2E8B57;
-            color:white;
-            padding:8px 16px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-weight:bold;
-        ">
-        🖨️ Imprimir Comprovante
-        </button>
-        """,
-        unsafe_allow_html=True
-    )
-
 # ======================================
 # Ranking
 # ======================================
@@ -665,6 +625,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
