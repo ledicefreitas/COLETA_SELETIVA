@@ -68,17 +68,7 @@ def paginate_dataframe(df, page_size=10, key_prefix=""):
     st.write(f"📄 Página {page}/{total_pages}")
 
     return df.iloc[start:end]
-
-
-#=======================================    
-# Dicionário de usuários autorizados
-#=======================================   
-
-USERS = {
-    "admin": "1234",
-    "leticia": "senha123",
-    "coleta": "verde2025"
-}
+ 
 
 #=======================================   
 # Estado de login
@@ -440,6 +430,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
