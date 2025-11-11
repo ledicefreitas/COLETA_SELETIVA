@@ -1,0 +1,1434 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>♻️ Sistema de Coleta Seletiva</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    html {
+      height: 100%;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    }
+    .toast.success {
+      background-color: #10b981;
+    }
+    .toast.error {
+      background-color: #ef4444;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .sidebar-option {
+      cursor: pointer;
+      padding: 12px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-option:hover {
+      background-color: #f3f4f6;
+    }
+    .sidebar-option.active {
+      background-color: #22c55e;
+      color: white;
+    }
+    .editable-cell {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .editable-cell:hover {
+      background-color: #f3f4f6;
+    }
+    .editable-input {
+      width: 100%;
+      padding: 6px;
+      border: 2px solid #22c55e;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background-color: #22c55e;
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #16a34a;
+    }
+    .btn-secondary {
+      background-color: #6b7280;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #4b5563;
+    }
+    .btn-danger {
+      background-color: #ef4444;
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .autocomplete-container {
+      position: relative;
+    }
+    .autocomplete-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .autocomplete-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .autocomplete-item:hover {
+      background-color: #f3f4f6;
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body><!-- Login Screen -->
+  <div id="login-screen" class="min-h-full flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
+   <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div class="text-center mb-8">
+     <h1 class="text-4xl font-bold text-gray-800 mb-2" id="login-title">♻️ Sistema de Coleta Seletiva</h1>
+     <p class="text-gray-600" id="login-welcome">Bem-vindo ao sistema</p>
+    </div>
+    <form id="login-form" class="space-y-4">
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label> <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Digite seu usuário" required>
+     </div>
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Senha</label> <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Digite sua senha" required>
+     </div><button type="submit" class="w-full btn btn-primary py-3 text-lg">Entrar</button>
+    </form>
+   </div>
+  </div><!-- Main App -->
+  <div id="main-app" class="hidden min-h-full flex"><!-- Sidebar -->
+   <div id="sidebar" class="w-64 bg-white border-r border-gray-200 p-6 transition-all duration-300">
+    <div class="mb-8">
+     <h2 class="text-2xl font-bold text-gray-800" id="sidebar-title">♻️ Coleta Seletiva</h2>
+     <p class="text-sm text-gray-500 mt-1">Olá, <span id="current-user"></span></p>
+    </div>
+    <nav class="space-y-2">
+     <div class="sidebar-option active" data-section="collectors"><span>👥</span> <span>Coletores</span>
+     </div>
+     <div class="sidebar-option" data-section="materials"><span>📦</span> <span>Materiais</span>
+     </div>
+     <div class="sidebar-option" data-section="weighings"><span>⚖️</span> <span>Pesagens</span>
+     </div>
+     <div class="sidebar-option" data-section="ranking"><span>🏆</span> <span>Ranking</span>
+     </div>
+     <div class="sidebar-option" data-section="lottery"><span>🎲</span> <span>Sorteio</span>
+     </div>
+    </nav><button id="logout-btn" class="mt-8 w-full btn btn-secondary">🚪 Sair</button>
+   </div><!-- Toggle Button --> <button id="toggle-sidebar-btn" class="fixed top-1/2 -translate-y-1/2 z-50 bg-green-500 text-white p-3 rounded-lg shadow-lg hover:bg-green-600 transition-all duration-300" style="left: 256px;"> <span id="toggle-icon">«</span> </button> <!-- Content Area -->
+   <div class="flex-1 bg-gray-50 p-8 overflow-auto pb-20"><!-- Collectors Section -->
+    <div id="collectors-section" class="section">
+     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">👥 Coletores</h2>
+      <div class="mb-4"><input type="text" id="collector-filter" placeholder="🔍 Filtrar por nome..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+      </div>
+      <div class="mb-6 p-4 bg-green-50 rounded-lg">
+       <h3 class="font-semibold text-gray-700 mb-3">✏️ Adicionar Novo Coletor</h3>
+       <form id="add-collector-form" class="grid grid-cols-1 gap-3"><input type="text" id="new-collector-name" placeholder="Nome completo" class="px-3 py-2 border border-gray-300 rounded-lg" required>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3"><input type="text" id="new-collector-phone" placeholder="(00) 00000-0000" maxlength="15" class="px-3 py-2 border border-gray-300 rounded-lg" required> <input type="text" id="new-collector-address" placeholder="Endereço" class="px-3 py-2 border border-gray-300 rounded-lg" required>
+        </div><button type="submit" class="btn btn-primary">➕ Adicionar Coletor</button>
+       </form>
+      </div>
+      <div class="overflow-x-auto">
+       <table class="w-full">
+        <thead class="bg-gray-50">
+         <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nome</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Telefone</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Endereço</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
+         </tr>
+        </thead>
+        <tbody id="collectors-table" class="divide-y divide-gray-200">
+        </tbody>
+       </table>
+      </div>
+      <div class="flex justify-between items-center mt-4"><button id="collectors-prev" class="btn btn-secondary">← Anterior</button> <span id="collectors-page-info" class="text-sm text-gray-600"></span> <button id="collectors-next" class="btn btn-secondary">Próxima →</button>
+      </div>
+     </div>
+    </div><!-- Materials Section -->
+    <div id="materials-section" class="section hidden">
+     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">📦 Materiais</h2>
+      <div class="mb-4"><input type="text" id="material-filter" placeholder="🔍 Filtrar por tipo..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+      </div>
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+       <h3 class="font-semibold text-gray-700 mb-3">✏️ Adicionar Novo Material</h3>
+       <form id="add-material-form" class="grid grid-cols-1 md:grid-cols-2 gap-3"><input type="text" id="new-material-type" placeholder="Tipo (ex: Plástico, Papel, Metal)" class="px-3 py-2 border border-gray-300 rounded-lg" required> <button type="submit" class="btn btn-primary">➕ Adicionar Material</button>
+       </form>
+      </div>
+      <div class="overflow-x-auto">
+       <table class="w-full">
+        <thead class="bg-gray-50">
+         <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tipo de Material</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Unidade</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
+         </tr>
+        </thead>
+        <tbody id="materials-table" class="divide-y divide-gray-200">
+        </tbody>
+       </table>
+      </div>
+      <div class="flex justify-between items-center mt-4"><button id="materials-prev" class="btn btn-secondary">← Anterior</button> <span id="materials-page-info" class="text-sm text-gray-600"></span> <button id="materials-next" class="btn btn-secondary">Próxima →</button>
+      </div>
+     </div>
+    </div><!-- Weighings Section -->
+    <div id="weighings-section" class="section hidden">
+     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">⚖️ Pesagens</h2>
+      <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3"><input type="text" id="weighing-filter-collector" placeholder="🔍 Filtrar por coletor..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"> <input type="date" id="weighing-filter-date" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+      </div>
+      <div class="mb-6 p-4 bg-purple-50 rounded-lg">
+       <h3 class="font-semibold text-gray-700 mb-3">✏️ Registrar Nova Pesagem</h3>
+       <form id="add-weighing-form" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div class="autocomplete-container"><input type="text" id="new-weighing-collector-search" placeholder="Digite o nome do coletor..." class="w-full px-3 py-2 border border-gray-300 rounded-lg" required autocomplete="off">
+         <div id="collector-autocomplete-results" class="autocomplete-results hidden"></div><input type="hidden" id="new-weighing-collector-id">
+        </div><select id="new-weighing-material" class="px-3 py-2 border border-gray-300 rounded-lg" required> <option value="">Selecione o material</option> </select> <input type="number" step="0.01" id="new-weighing-weight" placeholder="Peso (kg)" class="px-3 py-2 border border-gray-300 rounded-lg" required> <input type="date" id="new-weighing-date" class="px-3 py-2 border border-gray-300 rounded-lg" required> <button type="submit" class="btn btn-primary md:col-span-4">➕ Registrar Pesagem</button>
+       </form>
+      </div>
+      <div class="overflow-x-auto">
+       <table class="w-full">
+        <thead class="bg-gray-50">
+         <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Protocolo</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Coletor</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Material</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Peso (kg)</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
+         </tr>
+        </thead>
+        <tbody id="weighings-table" class="divide-y divide-gray-200">
+        </tbody>
+       </table>
+      </div>
+      <div class="flex justify-between items-center mt-4"><button id="weighings-prev" class="btn btn-secondary">← Anterior</button> <span id="weighings-page-info" class="text-sm text-gray-600"></span> <button id="weighings-next" class="btn btn-secondary">Próxima →</button>
+      </div>
+     </div>
+    </div><!-- Ranking Section -->
+    <div id="ranking-section" class="section hidden">
+     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">🏆 Ranking de Coletores</h2>
+      <div class="mb-6 p-4 bg-yellow-50 rounded-lg">
+       <h3 class="font-semibold text-gray-700 mb-3">📅 Filtrar por Período</h3>
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-3"><input type="date" id="ranking-start-date" class="px-3 py-2 border border-gray-300 rounded-lg"> <input type="date" id="ranking-end-date" class="px-3 py-2 border border-gray-300 rounded-lg"> <button id="generate-ranking-btn" class="btn btn-primary">🔄 Gerar Ranking</button>
+       </div>
+      </div>
+      <div class="mb-6">
+       <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Ranking Geral (Peso Total)</h3>
+       <div id="ranking-general" class="space-y-3">
+       </div>
+      </div>
+      <div>
+       <h3 class="text-xl font-bold text-gray-800 mb-4">📦 Ranking por Material</h3>
+       <div id="ranking-by-material">
+       </div>
+      </div>
+     </div>
+    </div><!-- Lottery Section -->
+    <div id="lottery-section" class="section hidden">
+     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">🎲 Sorteio de Protocolos</h2>
+      <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
+       <h3 class="font-semibold text-gray-700 mb-3">🎯 Realizar Sorteio</h3>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-3"><input type="number" id="lottery-quantity" min="1" placeholder="Quantidade de protocolos a sortear" class="px-3 py-2 border border-gray-300 rounded-lg" required> <button id="run-lottery-btn" class="btn btn-primary">🎲 Sortear Protocolos</button>
+       </div>
+       <p class="text-sm text-gray-600 mt-2">Protocolos disponíveis para sorteio: <span id="available-protocols-count" class="font-bold text-green-600">0</span></p>
+      </div>
+      <div class="mb-6">
+       <h3 class="text-lg font-bold text-gray-800 mb-3">🎊 Protocolos Sorteados</h3>
+       <div id="lottery-results" class="space-y-3">
+        <p class="text-gray-500 text-center py-4">Nenhum sorteio realizado ainda</p>
+       </div>
+      </div>
+      <div>
+       <h3 class="text-lg font-bold text-gray-800 mb-3">📋 Histórico de Sorteios</h3>
+       <div class="overflow-x-auto">
+        <table class="w-full">
+         <thead class="bg-gray-50">
+          <tr>
+           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Protocolo</th>
+           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Coletor</th>
+           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Data Pesagem</th>
+           <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Peso (kg)</th>
+          </tr>
+         </thead>
+         <tbody id="lottery-history-table" class="divide-y divide-gray-200">
+         </tbody>
+        </table>
+       </div>
+      </div>
+     </div>
+    </div><!-- Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 text-center text-sm text-gray-600 z-40">
+     <p>Desenvolvido por Leticia Freitas © 2025 — Sistema de Coleta Seletiva ♻️</p>
+    </footer>
+   </div>
+  </div><!-- Receipt Modal -->
+  <div id="receipt-modal" class="modal-overlay hidden">
+   <div class="modal-content">
+    <div id="print-area">
+     <div class="text-center mb-6 border-b-2 border-gray-300 pb-4">
+      <h1 class="text-3xl font-bold text-green-600">♻️ Sistema de Coleta Seletiva</h1>
+      <p class="text-gray-600 mt-2">Comprovante de Pesagem</p>
+     </div>
+     <div class="space-y-4 mb-6">
+      <div class="flex justify-between border-b border-gray-200 pb-2"><span class="font-semibold text-gray-700">Protocolo:</span> <span id="receipt-protocol" class="text-lg font-bold text-green-600"></span>
+      </div>
+      <div class="flex justify-between border-b border-gray-200 pb-2"><span class="font-semibold text-gray-700">Coletor:</span> <span id="receipt-collector"></span>
+      </div>
+      <div class="flex justify-between border-b border-gray-200 pb-2"><span class="font-semibold text-gray-700">Material:</span> <span id="receipt-material"></span>
+      </div>
+      <div class="flex justify-between border-b border-gray-200 pb-2"><span class="font-semibold text-gray-700">Peso:</span> <span id="receipt-weight"></span>
+      </div>
+      <div class="flex justify-between border-b border-gray-200 pb-2"><span class="font-semibold text-gray-700">Data:</span> <span id="receipt-date"></span>
+      </div>
+     </div>
+     <div class="text-center text-sm text-gray-500 border-t-2 border-gray-300 pt-4">
+      <p>Obrigado por contribuir com o meio ambiente!</p>
+      <p class="mt-1">Emitido em: <span id="receipt-timestamp"></span></p>
+     </div>
+    </div>
+    <div class="flex gap-3 mt-6 no-print"><button id="print-receipt-btn" class="flex-1 btn btn-primary">🖨️ Imprimir</button> <button id="download-pdf-btn" class="flex-1 btn btn-secondary">📄 Baixar PDF</button> <button id="close-receipt-btn" class="flex-1 btn btn-secondary">✖️ Fechar</button>
+    </div>
+   </div>
+  </div>
+  <script>
+    // ========== CONFIGURATION ==========
+    const defaultConfig = {
+      app_title: "♻️ Sistema de Coleta Seletiva",
+      welcome_message: "Bem-vindo ao sistema"
+    };
+
+    const USERS = {
+      "admin": { name: "Administrador", password: "1234" },
+      "leticia": { name: "Leticia", password: "senha123" },
+      "coleta": { name: "José Alves", password: "verde2025" }
+    };
+
+    let currentUser = null;
+    let allData = [];
+    let currentSection = 'collectors';
+    let selectedCollectorId = null;
+    let lastReceipt = null;
+    
+    // Pagination state
+    const pagination = {
+      collectors: { page: 0, pageSize: 10 },
+      materials: { page: 0, pageSize: 10 },
+      weighings: { page: 0, pageSize: 10 }
+    };
+
+    // ========== UTILITY FUNCTIONS ==========
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 11) {
+        return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+      } else if (cleaned.length === 10) {
+        return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+      }
+      return phone;
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function generateProtocol() {
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      
+      const weighings = allData.filter(item => 
+        item.type === 'weighing' && 
+        item.year === year && 
+        item.month === month
+      );
+      
+      const sequence = weighings.length + 1;
+      const sequenceStr = sequence.toString().padStart(5, '0');
+      
+      return {
+        protocol: `${year}${month}${sequenceStr}`,
+        year: year,
+        month: month,
+        sequence: sequence
+      };
+    }
+
+    // ========== SIDEBAR TOGGLE ==========
+    let sidebarVisible = true;
+    const toggleBtn = document.getElementById('toggle-sidebar-btn');
+    
+    document.getElementById('toggle-sidebar-btn').addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      const toggleIcon = document.getElementById('toggle-icon');
+      
+      sidebarVisible = !sidebarVisible;
+      
+      if (sidebarVisible) {
+        sidebar.style.width = '16rem';
+        sidebar.style.padding = '1.5rem';
+        sidebar.style.opacity = '1';
+        toggleIcon.textContent = '«';
+        toggleBtn.style.left = '256px';
+      } else {
+        sidebar.style.width = '0';
+        sidebar.style.padding = '0';
+        sidebar.style.opacity = '0';
+        toggleIcon.textContent = '»';
+        toggleBtn.style.left = '0px';
+      }
+    });
+
+    // ========== LOGIN SYSTEM ==========
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (USERS[username] && USERS[username].password === password) {
+        currentUser = username;
+        document.getElementById('current-user').textContent = USERS[username].name;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        showToast(`Bem-vindo(a), ${USERS[username].name}!`);
+      } else {
+        showToast('Usuário ou senha incorretos', 'error');
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      currentUser = null;
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      showToast('Logout realizado com sucesso!');
+    });
+
+    // ========== NAVIGATION ==========
+    document.querySelectorAll('.sidebar-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar-option').forEach(o => o.classList.remove('active'));
+        option.classList.add('active');
+        
+        const section = option.dataset.section;
+        currentSection = section;
+        
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+        document.getElementById(`${section}-section`).classList.remove('hidden');
+        
+        if (section === 'weighings') {
+          populateWeighingSelects();
+        } else if (section === 'lottery') {
+          updateLotteryInfo();
+        }
+      });
+    });
+
+    // ========== COLLECTORS CRUD ==========
+    document.getElementById('new-collector-phone').addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 11) {
+        value = value.slice(0, 11);
+      }
+      e.target.value = formatPhone(value);
+    });
+
+    document.getElementById('add-collector-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('new-collector-name').value.trim();
+      const phone = document.getElementById('new-collector-phone').value.replace(/\D/g, '');
+      const address = document.getElementById('new-collector-address').value.trim();
+
+      if (!name || !phone || !address) {
+        showToast('Preencha todos os campos', 'error');
+        return;
+      }
+
+      if (phone.length !== 10 && phone.length !== 11) {
+        showToast('Telefone deve ter 10 ou 11 dígitos', 'error');
+        return;
+      }
+
+      const duplicate = allData.find(item => 
+        item.type === 'collector' && 
+        item.name.toLowerCase() === name.toLowerCase() && 
+        item.phone.replace(/\D/g, '') === phone
+      );
+
+      if (duplicate) {
+        showToast('Já existe um coletor com este nome e telefone', 'error');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span> Adicionando...';
+
+      const result = await window.dataSdk.create({
+        id: generateId(),
+        type: 'collector',
+        name: name,
+        phone: formatPhone(phone),
+        address: address,
+        created_at: new Date().toISOString()
+      });
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '➕ Adicionar Coletor';
+
+      if (result.isOk) {
+        showToast('Coletor adicionado com sucesso!');
+        e.target.reset();
+      } else {
+        showToast('Erro ao adicionar coletor', 'error');
+      }
+    });
+
+    document.getElementById('collector-filter').addEventListener('input', (e) => {
+      pagination.collectors.page = 0;
+      renderCollectors();
+    });
+
+    document.getElementById('collectors-prev').addEventListener('click', () => {
+      if (pagination.collectors.page > 0) {
+        pagination.collectors.page--;
+        renderCollectors();
+      }
+    });
+
+    document.getElementById('collectors-next').addEventListener('click', () => {
+      const filtered = getFilteredCollectors();
+      const maxPage = Math.ceil(filtered.length / pagination.collectors.pageSize) - 1;
+      if (pagination.collectors.page < maxPage) {
+        pagination.collectors.page++;
+        renderCollectors();
+      }
+    });
+
+    function getFilteredCollectors() {
+      const filter = document.getElementById('collector-filter').value.toLowerCase();
+      return allData.filter(item => 
+        item.type === 'collector' && 
+        item.name.toLowerCase().includes(filter)
+      );
+    }
+
+    function renderCollectors() {
+      const tbody = document.getElementById('collectors-table');
+      const filtered = getFilteredCollectors();
+      const { page, pageSize } = pagination.collectors;
+      const start = page * pageSize;
+      const end = start + pageSize;
+      const pageData = filtered.slice(start, end);
+
+      tbody.innerHTML = pageData.map(collector => `
+        <tr>
+          <td class="px-4 py-3">
+            <div class="editable-cell" data-id="${collector.__backendId}" data-field="name">${collector.name}</div>
+          </td>
+          <td class="px-4 py-3">
+            <div class="editable-cell" data-id="${collector.__backendId}" data-field="phone">${collector.phone}</div>
+          </td>
+          <td class="px-4 py-3">
+            <div class="editable-cell" data-id="${collector.__backendId}" data-field="address">${collector.address}</div>
+          </td>
+          <td class="px-4 py-3">
+            <button class="btn btn-danger btn-sm" onclick="deleteCollector('${collector.__backendId}')">🗑️ Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('collectors-page-info').textContent = 
+        `Página ${page + 1} de ${Math.ceil(filtered.length / pageSize) || 1} (${filtered.length} registros)`;
+
+      document.getElementById('collectors-prev').disabled = page === 0;
+      document.getElementById('collectors-next').disabled = end >= filtered.length;
+
+      setupEditableCells();
+    }
+
+    async function deleteCollector(backendId) {
+      const record = allData.find(item => item.__backendId === backendId);
+      if (!record) return;
+
+      const result = await window.dataSdk.delete(record);
+      if (result.isOk) {
+        showToast('Coletor excluído com sucesso!');
+      } else {
+        showToast('Erro ao excluir coletor', 'error');
+      }
+    }
+
+    // ========== MATERIALS CRUD ==========
+    document.getElementById('add-material-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const materialType = document.getElementById('new-material-type').value.trim();
+
+      if (!materialType) {
+        showToast('Preencha o tipo de material', 'error');
+        return;
+      }
+
+      const duplicate = allData.find(item => 
+        item.type === 'material' && 
+        item.material_type.toLowerCase() === materialType.toLowerCase()
+      );
+
+      if (duplicate) {
+        showToast('Já existe um material com este nome', 'error');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span> Adicionando...';
+
+      const result = await window.dataSdk.create({
+        id: generateId(),
+        type: 'material',
+        material_type: materialType,
+        created_at: new Date().toISOString()
+      });
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '➕ Adicionar Material';
+
+      if (result.isOk) {
+        showToast('Material adicionado com sucesso!');
+        e.target.reset();
+      } else {
+        showToast('Erro ao adicionar material', 'error');
+      }
+    });
+
+    document.getElementById('material-filter').addEventListener('input', () => {
+      pagination.materials.page = 0;
+      renderMaterials();
+    });
+
+    document.getElementById('materials-prev').addEventListener('click', () => {
+      if (pagination.materials.page > 0) {
+        pagination.materials.page--;
+        renderMaterials();
+      }
+    });
+
+    document.getElementById('materials-next').addEventListener('click', () => {
+      const filtered = getFilteredMaterials();
+      const maxPage = Math.ceil(filtered.length / pagination.materials.pageSize) - 1;
+      if (pagination.materials.page < maxPage) {
+        pagination.materials.page++;
+        renderMaterials();
+      }
+    });
+
+    function getFilteredMaterials() {
+      const filter = document.getElementById('material-filter').value.toLowerCase();
+      return allData.filter(item => 
+        item.type === 'material' && 
+        item.material_type.toLowerCase().includes(filter)
+      );
+    }
+
+    function renderMaterials() {
+      const tbody = document.getElementById('materials-table');
+      const filtered = getFilteredMaterials();
+      const { page, pageSize } = pagination.materials;
+      const start = page * pageSize;
+      const end = start + pageSize;
+      const pageData = filtered.slice(start, end);
+
+      tbody.innerHTML = pageData.map(material => `
+        <tr>
+          <td class="px-4 py-3">
+            <div class="editable-cell" data-id="${material.__backendId}" data-field="material_type">${material.material_type}</div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="text-gray-600">kg</span>
+          </td>
+          <td class="px-4 py-3">
+            <button class="btn btn-danger btn-sm" onclick="deleteMaterial('${material.__backendId}')">🗑️ Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('materials-page-info').textContent = 
+        `Página ${page + 1} de ${Math.ceil(filtered.length / pageSize) || 1} (${filtered.length} registros)`;
+
+      document.getElementById('materials-prev').disabled = page === 0;
+      document.getElementById('materials-next').disabled = end >= filtered.length;
+
+      setupEditableCells();
+    }
+
+    async function deleteMaterial(backendId) {
+      const record = allData.find(item => item.__backendId === backendId);
+      if (!record) return;
+
+      const result = await window.dataSdk.delete(record);
+      if (result.isOk) {
+        showToast('Material excluído com sucesso!');
+      } else {
+        showToast('Erro ao excluir material', 'error');
+      }
+    }
+
+    // ========== AUTOCOMPLETE FOR COLLECTORS ==========
+    const collectorSearchInput = document.getElementById('new-weighing-collector-search');
+    const autocompleteResults = document.getElementById('collector-autocomplete-results');
+
+    collectorSearchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      
+      if (searchTerm.length < 2) {
+        autocompleteResults.classList.add('hidden');
+        autocompleteResults.innerHTML = '';
+        selectedCollectorId = null;
+        document.getElementById('new-weighing-collector-id').value = '';
+        return;
+      }
+
+      const collectors = allData.filter(item => 
+        item.type === 'collector' && 
+        item.name.toLowerCase().includes(searchTerm)
+      );
+
+      if (collectors.length === 0) {
+        autocompleteResults.classList.add('hidden');
+        autocompleteResults.innerHTML = '';
+        return;
+      }
+
+      autocompleteResults.innerHTML = collectors.map(collector => `
+        <div class="autocomplete-item" data-id="${collector.id}" data-name="${collector.name}">
+          <div class="font-semibold">${collector.name}</div>
+          <div class="text-sm text-gray-600">${collector.phone}</div>
+        </div>
+      `).join('');
+
+      autocompleteResults.classList.remove('hidden');
+
+      autocompleteResults.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const collectorId = item.dataset.id;
+          const collectorName = item.dataset.name;
+          
+          collectorSearchInput.value = collectorName;
+          selectedCollectorId = collectorId;
+          document.getElementById('new-weighing-collector-id').value = collectorId;
+          
+          autocompleteResults.classList.add('hidden');
+          autocompleteResults.innerHTML = '';
+        });
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!collectorSearchInput.contains(e.target) && !autocompleteResults.contains(e.target)) {
+        autocompleteResults.classList.add('hidden');
+      }
+    });
+
+    // ========== WEIGHINGS CRUD ==========
+    function populateWeighingSelects() {
+      const materials = allData.filter(item => item.type === 'material');
+
+      const materialSelect = document.getElementById('new-weighing-material');
+      materialSelect.innerHTML = '<option value="">Selecione o material</option>' +
+        materials.map(m => `<option value="${m.id}">${m.material_type}</option>`).join('');
+    }
+
+    document.getElementById('add-weighing-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const collectorId = document.getElementById('new-weighing-collector-id').value;
+      const materialId = document.getElementById('new-weighing-material').value;
+      const weight = parseFloat(document.getElementById('new-weighing-weight').value);
+      const date = document.getElementById('new-weighing-date').value;
+
+      if (!collectorId || !materialId || isNaN(weight) || !date) {
+        showToast('Preencha todos os campos corretamente', 'error');
+        return;
+      }
+
+      const selectedDate = new Date(date + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate > today) {
+        showToast('Não é permitido cadastrar pesagens com datas futuras', 'error');
+        return;
+      }
+
+      const collector = allData.find(c => c.id === collectorId);
+      const material = allData.find(m => m.id === materialId);
+
+      if (!collector || !material) {
+        showToast('Coletor ou material não encontrado', 'error');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span> Registrando...';
+
+      const protocolData = generateProtocol();
+
+      const result = await window.dataSdk.create({
+        id: generateId(),
+        type: 'weighing',
+        collector_id: collectorId,
+        collector_name: collector.name,
+        material_id: materialId,
+        material_name: material.material_type,
+        weight: weight,
+        date: date,
+        protocol: protocolData.protocol,
+        year: protocolData.year,
+        month: protocolData.month,
+        sequence: protocolData.sequence,
+        sorteio: 'não',
+        created_at: new Date().toISOString()
+      });
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '➕ Registrar Pesagem';
+
+      if (result.isOk) {
+        showToast('Pesagem registrada com sucesso!');
+        
+        lastReceipt = {
+          protocol: protocolData.protocol,
+          collector: collector.name,
+          material: material.material_type,
+          weight: weight,
+          date: date
+        };
+        
+        showReceipt(lastReceipt);
+        
+        e.target.reset();
+        selectedCollectorId = null;
+      } else {
+        showToast('Erro ao registrar pesagem', 'error');
+      }
+    });
+
+    document.getElementById('weighing-filter-collector').addEventListener('input', () => {
+      pagination.weighings.page = 0;
+      renderWeighings();
+    });
+
+    document.getElementById('weighing-filter-date').addEventListener('change', () => {
+      pagination.weighings.page = 0;
+      renderWeighings();
+    });
+
+    document.getElementById('weighings-prev').addEventListener('click', () => {
+      if (pagination.weighings.page > 0) {
+        pagination.weighings.page--;
+        renderWeighings();
+      }
+    });
+
+    document.getElementById('weighings-next').addEventListener('click', () => {
+      const filtered = getFilteredWeighings();
+      const maxPage = Math.ceil(filtered.length / pagination.weighings.pageSize) - 1;
+      if (pagination.weighings.page < maxPage) {
+        pagination.weighings.page++;
+        renderWeighings();
+      }
+    });
+
+    function getFilteredWeighings() {
+      const filterCollector = document.getElementById('weighing-filter-collector').value.toLowerCase();
+      const filterDate = document.getElementById('weighing-filter-date').value;
+
+      return allData.filter(item => {
+        if (item.type !== 'weighing') return false;
+        
+        const collectorMatch = !filterCollector || item.collector_name.toLowerCase().includes(filterCollector);
+        const dateMatch = !filterDate || item.date === filterDate;
+        
+        return collectorMatch && dateMatch;
+      });
+    }
+
+    function renderWeighings() {
+      const tbody = document.getElementById('weighings-table');
+      const filtered = getFilteredWeighings();
+      const { page, pageSize } = pagination.weighings;
+      const start = page * pageSize;
+      const end = start + pageSize;
+      const pageData = filtered.slice(start, end);
+
+      tbody.innerHTML = pageData.map(weighing => {
+        return `
+          <tr>
+            <td class="px-4 py-3">
+              <span class="font-mono font-bold text-green-600">${weighing.protocol}</span>
+            </td>
+            <td class="px-4 py-3">${weighing.collector_name}</td>
+            <td class="px-4 py-3">${weighing.material_name}</td>
+            <td class="px-4 py-3">
+              <div class="editable-cell" data-id="${weighing.__backendId}" data-field="weight">${weighing.weight}</div>
+            </td>
+            <td class="px-4 py-3">
+              <div class="editable-cell" data-id="${weighing.__backendId}" data-field="date">${new Date(weighing.date).toLocaleDateString('pt-BR')}</div>
+            </td>
+            <td class="px-4 py-3">
+              <button class="btn btn-primary btn-sm mr-2" onclick="viewReceipt('${weighing.__backendId}')">📄 Ver</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteWeighing('${weighing.__backendId}')">🗑️ Excluir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('weighings-page-info').textContent = 
+        `Página ${page + 1} de ${Math.ceil(filtered.length / pageSize) || 1} (${filtered.length} registros)`;
+
+      document.getElementById('weighings-prev').disabled = page === 0;
+      document.getElementById('weighings-next').disabled = end >= filtered.length;
+
+      setupEditableCells();
+    }
+
+    async function deleteWeighing(backendId) {
+      const record = allData.find(item => item.__backendId === backendId);
+      if (!record) return;
+
+      const result = await window.dataSdk.delete(record);
+      if (result.isOk) {
+        showToast('Pesagem excluída com sucesso!');
+      } else {
+        showToast('Erro ao excluir pesagem', 'error');
+      }
+    }
+
+    function viewReceipt(backendId) {
+      const weighing = allData.find(item => item.__backendId === backendId);
+      if (!weighing) return;
+
+      showReceipt({
+        protocol: weighing.protocol,
+        collector: weighing.collector_name,
+        material: weighing.material_name,
+        weight: weighing.weight,
+        date: weighing.date
+      });
+    }
+
+    // ========== RECEIPT MODAL ==========
+    function showReceipt(receiptData) {
+      document.getElementById('receipt-protocol').textContent = receiptData.protocol;
+      document.getElementById('receipt-collector').textContent = receiptData.collector;
+      document.getElementById('receipt-material').textContent = receiptData.material;
+      document.getElementById('receipt-weight').textContent = `${receiptData.weight} kg`;
+      document.getElementById('receipt-date').textContent = new Date(receiptData.date).toLocaleDateString('pt-BR');
+      document.getElementById('receipt-timestamp').textContent = new Date().toLocaleString('pt-BR');
+
+      document.getElementById('receipt-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('close-receipt-btn').addEventListener('click', () => {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    });
+
+    document.getElementById('print-receipt-btn').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('download-pdf-btn').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const protocol = document.getElementById('receipt-protocol').textContent;
+      const collector = document.getElementById('receipt-collector').textContent;
+      const material = document.getElementById('receipt-material').textContent;
+      const weight = document.getElementById('receipt-weight').textContent;
+      const date = document.getElementById('receipt-date').textContent;
+      const timestamp = document.getElementById('receipt-timestamp').textContent;
+
+      doc.setFontSize(20);
+      doc.text('Sistema de Coleta Seletiva', 105, 20, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.text('Comprovante de Pesagem', 105, 30, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Protocolo: ${protocol}`, 20, 50);
+      doc.text(`Coletor: ${collector}`, 20, 60);
+      doc.text(`Material: ${material}`, 20, 70);
+      doc.text(`Peso: ${weight}`, 20, 80);
+      doc.text(`Data: ${date}`, 20, 90);
+      
+      doc.setFontSize(10);
+      doc.text(`Emitido em: ${timestamp}`, 20, 110);
+      doc.text('Obrigado por contribuir com o meio ambiente!', 105, 120, { align: 'center' });
+
+      doc.save(`comprovante-${protocol}.pdf`);
+      showToast('PDF gerado com sucesso!');
+    });
+
+    // ========== RANKING ==========
+    document.getElementById('generate-ranking-btn').addEventListener('click', () => {
+      generateRanking();
+    });
+
+    function generateRanking() {
+      const startDate = document.getElementById('ranking-start-date').value;
+      const endDate = document.getElementById('ranking-end-date').value;
+
+      const weighings = allData.filter(item => {
+        if (item.type !== 'weighing') return false;
+        if (startDate && item.date < startDate) return false;
+        if (endDate && item.date > endDate) return false;
+        return true;
+      });
+
+      // Ranking Geral
+      const collectorTotals = {};
+      
+      weighings.forEach(weighing => {
+        const collectorId = weighing.collector_id;
+        if (!collectorTotals[collectorId]) {
+          collectorTotals[collectorId] = {
+            name: weighing.collector_name,
+            total: 0
+          };
+        }
+        collectorTotals[collectorId].total += weighing.weight;
+      });
+
+      const generalRanking = Object.values(collectorTotals)
+        .sort((a, b) => b.total - a.total);
+
+      const generalDiv = document.getElementById('ranking-general');
+      
+      if (generalRanking.length === 0) {
+        generalDiv.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma pesagem encontrada no período selecionado.</p>';
+      } else {
+        generalDiv.innerHTML = generalRanking.map((item, index) => {
+          const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+          return `
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
+              <div class="flex items-center gap-4">
+                <span class="text-3xl">${medal}</span>
+                <div>
+                  <p class="font-bold text-lg text-gray-800">${index + 1}º - ${item.name}</p>
+                  <p class="text-sm text-gray-600">Total coletado</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-green-600">${item.total.toFixed(2)} kg</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Ranking por Material
+      const materialRankings = {};
+      
+      weighings.forEach(weighing => {
+        const materialName = weighing.material_name;
+        const collectorName = weighing.collector_name;
+        
+        if (!materialRankings[materialName]) {
+          materialRankings[materialName] = {};
+        }
+        
+        if (!materialRankings[materialName][collectorName]) {
+          materialRankings[materialName][collectorName] = 0;
+        }
+        
+        materialRankings[materialName][collectorName] += weighing.weight;
+      });
+
+      const materialDiv = document.getElementById('ranking-by-material');
+      
+      if (Object.keys(materialRankings).length === 0) {
+        materialDiv.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma pesagem encontrada no período selecionado.</p>';
+      } else {
+        materialDiv.innerHTML = Object.entries(materialRankings).map(([material, collectors]) => {
+          const ranking = Object.entries(collectors)
+            .map(([name, total]) => ({ name, total }))
+            .sort((a, b) => b.total - a.total);
+
+          return `
+            <div class="mb-6">
+              <h4 class="text-lg font-bold text-gray-700 mb-3 bg-blue-100 p-3 rounded-lg">📦 ${material}</h4>
+              <div class="space-y-2">
+                ${ranking.map((item, index) => {
+                  const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+                  return `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div class="flex items-center gap-3">
+                        <span class="text-xl">${medal}</span>
+                        <span class="font-semibold text-gray-800">${index + 1}º - ${item.name}</span>
+                      </div>
+                      <span class="font-bold text-green-600">${item.total.toFixed(2)} kg</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      showToast('Ranking gerado com sucesso!');
+    }
+
+    // ========== LOTTERY ==========
+    function updateLotteryInfo() {
+      const availableProtocols = allData.filter(item => 
+        item.type === 'weighing' && item.sorteio === 'não'
+      );
+      
+      document.getElementById('available-protocols-count').textContent = availableProtocols.length;
+
+      const drawnProtocols = allData.filter(item => 
+        item.type === 'weighing' && item.sorteio === 'sim'
+      );
+
+      const historyTable = document.getElementById('lottery-history-table');
+      
+      if (drawnProtocols.length === 0) {
+        historyTable.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Nenhum protocolo sorteado ainda</td></tr>';
+      } else {
+        historyTable.innerHTML = drawnProtocols.map(weighing => `
+          <tr>
+            <td class="px-4 py-3"><span class="font-mono font-bold text-green-600">${weighing.protocol}</span></td>
+            <td class="px-4 py-3">${weighing.collector_name}</td>
+            <td class="px-4 py-3">${new Date(weighing.date).toLocaleDateString('pt-BR')}</td>
+            <td class="px-4 py-3">${weighing.weight} kg</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    document.getElementById('run-lottery-btn').addEventListener('click', async () => {
+      const quantity = parseInt(document.getElementById('lottery-quantity').value);
+
+      if (!quantity || quantity < 1) {
+        showToast('Informe uma quantidade válida', 'error');
+        return;
+      }
+
+      const availableProtocols = allData.filter(item => 
+        item.type === 'weighing' && item.sorteio === 'não'
+      );
+
+      if (availableProtocols.length === 0) {
+        showToast('Não há protocolos disponíveis para sorteio', 'error');
+        return;
+      }
+
+      if (quantity > availableProtocols.length) {
+        showToast(`Apenas ${availableProtocols.length} protocolos disponíveis`, 'error');
+        return;
+      }
+
+      const btn = document.getElementById('run-lottery-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Sorteando...';
+
+      const shuffled = [...availableProtocols].sort(() => Math.random() - 0.5);
+      const winners = shuffled.slice(0, quantity);
+
+      for (const winner of winners) {
+        const updatedRecord = { ...winner, sorteio: 'sim' };
+        await window.dataSdk.update(updatedRecord);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '🎲 Sortear Protocolos';
+
+      const resultsDiv = document.getElementById('lottery-results');
+      resultsDiv.innerHTML = `
+        <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+          <h4 class="font-bold text-lg text-green-800 mb-3">🎉 Protocolos Sorteados:</h4>
+          <div class="space-y-2">
+            ${winners.map((w, i) => `
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div>
+                  <span class="font-bold text-green-600 text-xl">${i + 1}º</span>
+                  <span class="ml-3 font-mono font-bold text-lg">${w.protocol}</span>
+                  <span class="ml-3 text-gray-600">- ${w.collector_name}</span>
+                </div>
+                <span class="text-sm text-gray-500">${w.weight} kg</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('lottery-quantity').value = '';
+      showToast(`${quantity} protocolo(s) sorteado(s) com sucesso!`);
+    });
+
+    // ========== INLINE EDITING ==========
+    function setupEditableCells() {
+      document.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+          if (this.querySelector('input')) return;
+
+          const backendId = this.dataset.id;
+          const field = this.dataset.field;
+          const currentValue = this.textContent.trim();
+
+          const input = document.createElement('input');
+          input.className = 'editable-input';
+          input.value = currentValue;
+          
+          if (field === 'weight') {
+            input.type = 'number';
+            input.step = '0.01';
+          } else if (field === 'date') {
+            input.type = 'date';
+            const parts = currentValue.split('/');
+            if (parts.length === 3) {
+              input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+          } else if (field === 'phone') {
+            input.type = 'text';
+            input.maxLength = 15;
+          } else {
+            input.type = 'text';
+          }
+
+          this.textContent = '';
+          this.appendChild(input);
+          input.focus();
+
+          const saveEdit = async () => {
+            const newValue = input.value.trim();
+            if (!newValue) {
+              showToast('Valor não pode ser vazio', 'error');
+              return;
+            }
+
+            const record = allData.find(item => item.__backendId === backendId);
+            if (!record) return;
+
+            const updatedRecord = { ...record };
+            
+            if (field === 'weight') {
+              updatedRecord[field] = parseFloat(newValue);
+            } else if (field === 'phone') {
+              const cleaned = newValue.replace(/\D/g, '');
+              if (cleaned.length !== 10 && cleaned.length !== 11) {
+                showToast('Telefone deve ter 10 ou 11 dígitos', 'error');
+                return;
+              }
+              updatedRecord[field] = formatPhone(cleaned);
+            } else {
+              updatedRecord[field] = newValue;
+            }
+
+            const result = await window.dataSdk.update(updatedRecord);
+            
+            if (result.isOk) {
+              showToast('Atualizado com sucesso!');
+            } else {
+              showToast('Erro ao atualizar', 'error');
+            }
+          };
+
+          input.addEventListener('blur', saveEdit);
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              saveEdit();
+            }
+          });
+        });
+      });
+    }
+
+    // ========== DATA SDK INITIALIZATION ==========
+    const dataHandler = {
+      onDataChanged(data) {
+        allData = data;
+        
+        if (currentSection === 'collectors') {
+          renderCollectors();
+        } else if (currentSection === 'materials') {
+          renderMaterials();
+        } else if (currentSection === 'weighings') {
+          renderWeighings();
+          populateWeighingSelects();
+        } else if (currentSection === 'lottery') {
+          updateLotteryInfo();
+        }
+      }
+    };
+
+    // ========== ELEMENT SDK INITIALIZATION ==========
+    async function onConfigChange(config) {
+      const appTitle = config.app_title || defaultConfig.app_title;
+      const welcomeMessage = config.welcome_message || defaultConfig.welcome_message;
+
+      document.getElementById('login-title').textContent = appTitle;
+      document.getElementById('login-welcome').textContent = welcomeMessage;
+      document.getElementById('sidebar-title').textContent = appTitle;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["app_title", config.app_title || defaultConfig.app_title],
+          ["welcome_message", config.welcome_message || defaultConfig.welcome_message]
+        ])
+      });
+    }
+
+    // ========== INITIALIZE APP ==========
+    (async function init() {
+      const result = await window.dataSdk.init(dataHandler);
+      if (!result.isOk) {
+        showToast('Erro ao inicializar sistema', 'error');
+      }
+
+      document.getElementById('new-weighing-date').valueAsDate = new Date();
+      
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      document.getElementById('ranking-start-date').valueAsDate = firstDay;
+      document.getElementById('ranking-end-date').valueAsDate = today;
+    })();
+
+    window.deleteCollector = deleteCollector;
+    window.deleteMaterial = deleteMaterial;
+    window.deleteWeighing = deleteWeighing;
+    window.viewReceipt = viewReceipt;
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99ceee41834ff1d1',t:'MTc2Mjg3NjA3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
